@@ -14,6 +14,16 @@ var cfenv = require('cfenv');
 
 var routes = require('./routes');
 var mongoose = require('mongoose');
+var passport = require('passport');
+
+var flash    = require('connect-flash');
+
+var morgan       = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser   = require('body-parser');
+var session      = require('express-session');
+
+var configDB = require('./config/database.js');
 
 
 // create a new express server
@@ -34,7 +44,7 @@ app.use('/', routes);
 var appEnv = cfenv.getAppEnv();
 //
 // // start server on the specified port and binding host
-app.listen(appEnv.port, '0.0.0.0', function() {
+app.listen(3000, '0.0.0.0', function() {
   // print a message when the server starts listening
   console.log("server starting on " + appEnv.url);
 });
@@ -48,5 +58,19 @@ db.once('open', function() {
 });
 
 mongoose.connect('mongodb://localhost/users');
-var User = require('./models/user');
-var router_user = require('./routes/auth/register/index')(app,User);
+//var User = require('./models/user');
+//var router_user = require('./routes/auth/register/index')(app,User);
+
+app.use(morgan('dev')); // log every request to the console
+app.use(cookieParser()); // read cookies (needed for auth)
+app.use(bodyParser()); // get information from html forms
+
+// required for passport
+app.use(session({ secret: 'sessionpwforteam7..' })); // session secret
+app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
+app.use(flash()); // use connect-flash for flash messages stored in session
+
+// routes ======================================================================
+require('./routes/auth/index.js')(app, passport); // load our routes and pass in our app and fully configured passport
+require('./config/passport')(passport);
