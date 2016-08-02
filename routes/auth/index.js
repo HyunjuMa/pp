@@ -28,4 +28,4 @@ module.exports = function(app, passport) {
 }
 
 
-module.exports = router;
+module.exports = app;
